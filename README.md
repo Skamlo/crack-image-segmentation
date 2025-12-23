@@ -1,5 +1,7 @@
 # Crack image segmentation
 
+![Example segmentation](../assets/example_segmentations.png?raw=true)
+
 ### Srouces:
 
 - https://arxiv.org/abs/1505.04597
