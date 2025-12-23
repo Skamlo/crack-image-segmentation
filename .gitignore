@@ -210,5 +210,9 @@ __marimo__/
 data/*
 !data/.gitkeep
 
+# Checkpoints folder with models
+checkpoints/*
+!checkpoints/.gitkeep
+
 # Ignore folder
 /ignore

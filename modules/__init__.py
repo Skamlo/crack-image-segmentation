@@ -1,8 +1,12 @@
 from modules.dataloader import CrackTrainDataloader, CrackTestDataloader
-from modules.model.weakly_supervised_u_net import WeaklySupervisedUNet
+from modules.model import UNet, ResNetUNet, ResNetUNetUnfreezed
+from modules.train import train
 
 __all__ = [
     "CrackTrainDataloader",
     "CrackTestDataloader",
-    "WeaklySupervisedUNet"
+    "UNet",
+    "ResNetUNet",
+    "ResNetUNetUnfreezed",
+    "train"
 ]

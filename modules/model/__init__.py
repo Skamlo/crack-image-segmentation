@@ -1,5 +1,9 @@
-from modules.model.weakly_supervised_u_net import WeaklySupervisedUNet
+from modules.model.unet import UNet
+from modules.model.resnet_unet import ResNetUNet
+from modules.model.resnet_unet_unfreezed import ResNetUNetUnfreezed
 
 __all__ = [
-    "WeaklySupervisedUNet"
+    "UNet",
+    "ResNetUNet",
+    "ResNetUNetUnfreezed"
 ]

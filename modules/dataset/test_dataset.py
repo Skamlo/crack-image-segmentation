@@ -2,12 +2,12 @@ import os
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
-from tqdm import tqdm
-from modules.transformer import CrackImageTransform, CrackMaskTransform
+from modules.transformer import CrackImageTransform
+from modules.transformer import CrackMaskTransform 
 
 
 class CrackTestDataset(Dataset):
-    def __init__(self, dataset_path:str="./data/cracked_segmentation_dataset", load_during_init=True):
+    def __init__(self, dataset_path:str="data/crack_segmentation_dataset"):
         super().__init__()
         
         # Paths
@@ -15,51 +15,51 @@ class CrackTestDataset(Dataset):
         self.__images_path = f"{self.__dataset_path}/test/images"
         self.__masks_path = f"{self.__dataset_path}/test/masks"
 
-        # Transform images
+        # Transforms
         self.__image_transform = CrackImageTransform()
         self.__mask_transform = CrackMaskTransform()
 
-        # Dataset
-        self.__dataset_loaded = False
-        self.images = []
-        self.masks = []
+        # Data container: List of tuples [(image_path, mask_path), ...]
+        self.samples = []
 
-        if load_during_init:
-            self.__load_dataset()
+        # Index files immediately
+        self.__prepare_dataset()
 
-    def __load_dataset(self):
+    def __prepare_dataset(self):
+        if not os.path.exists(self.__images_path) or not os.path.exists(self.__masks_path):
+            raise FileNotFoundError(f"Test paths not found in {self.__dataset_path}")
+
         # Get file names
         file_names = os.listdir(self.__images_path)
+        
+        print(f"Indexing test dataset ({len(file_names)} files)...")
 
-        # Set pbar
-        pbar = tqdm(total=len(file_names), desc="Loading test dataset", unit="files")
-
-        # Load images
+        # Store paths only
         for file_name in file_names:
-            pbar.update()
+            img_full_path = os.path.join(self.__images_path, file_name)
+            mask_full_path = os.path.join(self.__masks_path, file_name)
+            
+            if os.path.exists(mask_full_path):
+                self.samples.append((img_full_path, mask_full_path))
+            else:
+                print(f"Warning: Mask not found for {file_name}, skipping.")
 
-            image = Image.open(f"{self.__images_path}/{file_name}").convert("RGB")
-            image = self.__image_transform(image)
-            self.images.append(image)
-
-            mask = Image.open(f"{self.__masks_path}/{file_name}")
-            mask = self.__mask_transform(mask)
-            self.masks.append(mask)
-
-        # Shuffle dataset
-        indices = np.random.permutation(len(self.images))
-        self.images = [self.images[i] for i in indices]
-        self.masks = [self.masks[i] for i in indices]
-
-        # Switch dataset as loaded
-        self.__dataset_loaded = True
+        np.random.shuffle(self.samples)
 
     def __len__(self):
-        return len(self.images)
+        return len(self.samples)
 
     def __getitem__(self, idx):
-        if not self.__dataset_loaded:
-            self.__load_dataset()
+        img_path, mask_path = self.samples[idx]
 
-        image, mask = self.images[idx], self.masks[idx]
+        try:
+            image = Image.open(img_path).convert("RGB")
+            mask = Image.open(mask_path)
+        except Exception as e:
+            print(f"Error loading sample {img_path}: {e}")
+            return self.__getitem__((idx + 1) % len(self))
+
+        image = self.__image_transform(image)
+        mask = self.__mask_transform(mask)
+
         return image, mask
