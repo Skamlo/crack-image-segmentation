@@ -8,9 +8,16 @@ def train(
     ):
     best_dice = 0.0
 
+    history = {
+        "loss": [],
+        "val_dice": []
+    }
+
     for epoch in range(n_epochs):
-        train_loss = train_epoch(train_loader, model, optimizer, criterion, device)
+        train_loss, history_loss = train_epoch(train_loader, model, optimizer, criterion, device)
         val_dice = evaluate(test_loader, model, device)
+        history["loss"].extend(history_loss)
+        history["val_dice"].append(val_dice)
         
         print(f"Epoch [{epoch+1}/{n_epochs}] Loss: {train_loss:.4f} | Test Dice: {val_dice:.4f}")
         
@@ -21,3 +28,5 @@ def train(
 
             torch.save(state_dict, f"{save_dir}/best_model.pth")
             print(">>> Saved Best Model")
+
+    return history_loss
